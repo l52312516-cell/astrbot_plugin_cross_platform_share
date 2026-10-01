@@ -189,7 +189,7 @@
         jobs = result.jobs || [];
         historyJobs = history.jobs || [];
         historyTotal = history.total || 0;
-        document.getElementById('version').textContent = `v${result.version || ''}`;
+        document.getElementById('version').textContent = `v${(result.version || '').replace(/^v/, '')}`;
         renderStatuses(); renderHistory();
         if (!silent) say(dirty ? '状态已更新，未保存的输入已保留。' : '状态已更新', 'ok');
       } catch (error) {

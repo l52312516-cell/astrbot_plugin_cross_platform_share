@@ -8,7 +8,7 @@
 
 ## 版本与要求
 
-- 插件版本：`2.4.0`
+- 插件版本：`v2.4.0`
 - AstrBot 版本：`>=4.16,<5`
 - Python 依赖：`aiosqlite>=0.19.0`
 - 需要 AstrBot 的 `ConversationManager` 和 `PlatformMessageHistory` 管理接口。
