@@ -32,7 +32,7 @@ except ImportError:  # AstrBot versions that load main.py as a standalone module
 
 PLUGIN_ID = "astrbot_plugin_cross_platform_share"
 PLUGIN_VERSION = "v2.4.0"
-PLUGIN_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_STORAGE_DIR = os.path.join("data", "plugin_data", PLUGIN_ID)
 
 
 @register(
@@ -87,7 +87,7 @@ class CrossPlatformShare(Star):
         async with self._storage_lock:
             if self.storage is None:
                 directory = str(self._cfg("storage_dir", "") or "").strip()
-                storage = PluginStorage(directory or os.path.join(PLUGIN_DIR, "data"))
+                storage = PluginStorage(directory or DEFAULT_STORAGE_DIR)
                 await storage.open()
                 self.storage = storage
         return self.storage

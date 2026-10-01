@@ -9,6 +9,6 @@
     "description": "克隆任务元数据目录",
     "type": "string",
     "default": "",
-    "hint": "留空时使用插件目录下的 data；这里只保存状态和映射，不保存对话正文。"
+    "hint": "留空时使用 AstrBot 数据目录下的 data/plugin_data/astrbot_plugin_cross_platform_share；这里只保存状态和映射，不保存对话正文。"
   }
 }

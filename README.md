@@ -2,9 +2,34 @@
 
 项目地址：[GitHub 仓库](https://github.com/l52312516-cell/astrbot_plugin_cross_platform_share)
 
-本插件把一个完整 UMO（A）的已有对话数据，单向复制给一个或多个完整 UMO（B）。每个 B 获得独立的 `conversation_id`；复制完成后，A 与 B 的新消息互不影响。B 原有对话会保留，新副本会成为 B 的当前对话。
+<img src="logo.png" alt="AstrBot 对话数据跨平台共享插件图标" width="180">
 
-适用场景包括把 QQ 群聊、私聊或其他平台的已有上下文交给新平台会话使用。它是一次性复制，不是实时共享，也不负责不同 AstrBot 实例之间的数据迁移。
+## 这是什么
+
+这个插件解决的是“让另一个平台直接使用已有对话上下文”的问题。
+
+你可以把 A 的历史对话复制给一个或多个 B。例如：A 是 QQ 群 `10001`，B 是 Telegram 用户 `20002`。复制后，Telegram 会得到一份包含 A 历史消息的独立对话，可以直接接着使用；A 的 QQ 对话和 B 的 Telegram 对话各自继续运行，互不覆盖。
+
+一次映射的核心关系是：
+
+```text
+A（已有对话） ──复制一次──> B（新的独立对话副本）
+                         └──> B2（另一个独立对话副本）
+```
+
+每个 B 都有自己的 `conversation_id`。B 原来已有的对话会保留，新副本只会成为 B 的当前对话。
+
+插件执行的是一次性快照复制，不是实时同步。A 后续新增的消息不会自动出现在 B；需要更新时，使用“重新复制一批”创建新的 Revision。
+
+## 功能一览
+
+- 支持一个 A UMO 映射多个 B UMO；每个 B 都获得独立副本。
+- 复制 A UMO 下的全部 conversation，包括标题、Persona、消息顺序、角色、工具调用、消息组件和可用的 token 统计。
+- 复制 `PlatformMessageHistory`，让目标平台保留可用的平台原始消息历史。
+- 保存映射后立即后台复制，不需要等待 B 发送消息才能开始。
+- 支持复制中断恢复、失败重试、任务进度、复制历史和目标对话预览。
+- 支持 Revision，保留旧副本并创建新批次。
+- 支持 `all`、`group`、`private`、`auto` 四种来源范围校验。
 
 ## 版本与要求
 
@@ -114,7 +139,7 @@ telegram:FriendMessage:20002
 | 配置项 | 默认值 | 用途 |
 | --- | --- | --- |
 | `clone_mappings_json` | `[]` | A→B 映射；管理页会自动维护 |
-| `storage_dir` | 空 | 插件元数据目录；为空时使用插件目录下的 `data` |
+| `storage_dir` | 空 | 插件元数据目录；为空时使用 AstrBot 数据目录下的 `data/plugin_data/astrbot_plugin_cross_platform_share` |
 
 插件 SQLite 只记录任务、阶段、conversation ID 映射和平台消息指纹等恢复信息，不保存对话正文。实际对话内容仍由 AstrBot 原生会话存储管理。复制会让 B 看到 A 原有的对话内容，请确认目标账号或群组适合接收这些数据。
 
