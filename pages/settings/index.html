@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Astrbot 对话数据跨平台共享</title>
+  <style>
+    :root { color-scheme: light dark; --bg:#f4f6f8; --panel:#fff; --text:#17212b; --muted:#687684; --line:#d9e0e6; --accent:#2878d4; --danger:#c63c3c; --ok:#21864b; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#15191e; --panel:#20262c; --text:#f0f3f5; --muted:#aab6c0; --line:#39434d; --accent:#64a7ed; --danger:#ff8a8a; --ok:#72d59d; } }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif; }
+    .shell { max-width:1080px; margin:0 auto; padding:28px 20px 48px; }
+    header { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; margin-bottom:22px; }
+    h1 { font-size:24px; margin:0 0 6px; letter-spacing:0; }
+    p { margin:0; color:var(--muted); }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; }
+    button { border:1px solid var(--line); background:var(--panel); color:var(--text); border-radius:6px; padding:9px 14px; cursor:pointer; font:inherit; }
+    button.primary { color:#fff; background:var(--accent); border-color:var(--accent); }
+    button.danger { color:var(--danger); }
+    button:disabled { opacity:.55; cursor:wait; }
+    .notice { background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:6px; padding:12px 14px; margin-bottom:16px; }
+    .notice strong { display:block; margin-bottom:3px; }
+    #message { min-height:22px; margin:10px 0; color:var(--muted); }
+    #message.error { color:var(--danger); }
+    #message.ok { color:var(--ok); }
+    .mapping { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; margin:12px 0; }
+    .mapping-head { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:12px; }
+    .mapping-title { font-weight:650; }
+    .grid { display:grid; grid-template-columns:minmax(0,1fr) 150px 100px; gap:12px; }
+    label { display:block; color:var(--muted); font-size:12px; margin-bottom:5px; }
+    input, select, textarea { width:100%; border:1px solid var(--line); border-radius:5px; background:var(--panel); color:var(--text); padding:9px 10px; font:inherit; }
+    textarea { min-height:78px; resize:vertical; }
+    .targets { margin-top:12px; }
+    .hint { color:var(--muted); font-size:12px; margin-top:5px; }
+    .statuses { display:flex; gap:7px; flex-wrap:wrap; margin-top:12px; }
+    .status { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:999px; padding:4px 9px; color:var(--muted); font-size:12px; }
+    .status.complete { color:var(--ok); border-color:color-mix(in srgb,var(--ok) 45%,var(--line)); }
+    .status.partial, .status.failed { color:var(--danger); border-color:color-mix(in srgb,var(--danger) 45%,var(--line)); }
+    .empty { text-align:center; padding:30px; border:1px dashed var(--line); border-radius:8px; color:var(--muted); }
+    .footer { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:18px; }
+    h2 { font-size:19px; margin:0 0 12px; } h3 { font-size:15px; margin:12px 0; }
+    .summary { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:18px 0; }
+    .metric { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px; }
+    .metric b { display:block; font-size:24px; } .metric span { color:var(--muted); }
+    .status-item { width:100%; padding:10px; border:1px solid var(--line); border-radius:6px; overflow-wrap:anywhere; }
+    .status-top { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+    .error-detail { white-space:pre-wrap; color:var(--danger); margin:6px 0; overflow-wrap:anywhere; }
+    .history-panel, #detail { margin-top:28px; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:18px; }
+    .table-wrap { overflow-x:auto; } table { width:100%; border-collapse:collapse; text-align:left; }
+    th,td { padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+    th { color:var(--muted); font-size:12px; } td { font-size:13px; overflow-wrap:anywhere; }
+    td code { font-size:12px; } .pager { display:flex; gap:12px; justify-content:flex-end; align-items:center; margin-top:14px; }
+    .small { padding:5px 10px; font-size:12px; } .muted { color:var(--muted); }
+    .confirm-box { margin-top:12px; padding:12px; border:1px solid var(--accent); border-radius:6px; }
+    [hidden] { display:none !important; } pre { white-space:pre-wrap; overflow-wrap:anywhere; font:13px/1.7 inherit; margin:6px 0; }
+    .chat-message { border-bottom:1px solid var(--line); padding:12px 0; }
+    .events { padding-left:20px; font-size:12px; color:var(--muted); }
+    @media (max-width:700px) { .summary { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:700px) { .shell { padding:20px 13px 36px; } header { display:block; } .actions { margin-top:14px; } .grid { grid-template-columns:1fr; } .footer { align-items:stretch; flex-direction:column-reverse; } .footer button { width:100%; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <h1>Astrbot对话数据跨平台共享</h1>
+        <p>配置 A UMO 到多个 B UMO。保存后立即复制，之后双方完全独立。<span id="version"></span></p>
+      </div>
+      <div class="actions">
+        <button id="refresh">刷新状态</button>
+        <button id="add">添加映射</button>
+      </div>
+    </header>
+    <section class="notice">
+      <strong>UMO 填写规则</strong>
+      <span>使用完整格式 <code>平台:消息类型:会话ID</code>。scope=自动会根据 A 的 GroupMessage/FriendMessage 检查类型；revision 增大后会创建新的独立副本。</span>
+    </section>
+    <div id="message" role="status"></div>
+    <section id="summary" class="summary" aria-label="当前映射任务概况"></section>
+    <section id="list"></section>
+    <div class="footer">
+      <span class="hint">页面保存的是插件配置；复制状态只记录任务和映射，不保存对话正文。</span>
+      <button id="save" class="primary">保存并开始复制</button>
+    </div>
+    <section class="history-panel">
+      <h2>复制历史记录</h2>
+      <p>保留历次批次、执行时间和结果；“查看详情”可查看对话映射和当前副本内容。</p>
+      <div id="history" class="table-wrap"></div>
+      <div class="pager"><button id="history-prev">上一页</button><span id="history-page"></span><button id="history-next">下一页</button></div>
+    </section>
+    <section id="detail" hidden aria-label="任务详情"></section>
+  </main>
+  <script type="module">
+    const bridge = window.AstrBotPluginPage;
+    const list = document.getElementById('list');
+    const message = document.getElementById('message');
+    let mappings = [];
+    let jobs = [];
+    let historyJobs = [];
+    let historyPage = 1;
+    let historyTotal = 0;
+    let dirty = false;
+    let editVersion = 0;
+    let busy = false;
+    let selectedJob = null;
+    let previewVersion = 0;
+    let detailVersion = 0;
+    let pollTimer = null;
+    let loading = false;
+
+    function say(text, kind='') { message.textContent = text || ''; message.className = kind; }
+    function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+    function statusText(status) { return ({pending:'已排队',running:'复制中',partial:'部分完成',failed:'失败',complete:'已完成'}[status] || '未开始'); }
+    function jobFor(item, target) { return jobs.find(job => job.source_umo === item.source_umo && job.target_umo === target && job.scope === item.scope && job.revision === Number(item.revision)); }
+    function phaseText(phase) { return ({checking:'检查来源',conversations:'复制对话',platform_history:'复制平台消息',switching:'切换目标对话',complete:'复制结束'}[phase] || '等待开始'); }
+    function timeText(value) { return value ? new Date(value * 1000).toLocaleString('zh-CN', {hour12:false}) : '—'; }
+    function countText(value) { return value == null ? '—' : String(value); }
+    function progressText(job) { return `对话 ${job.conversations_done || 0}/${countText(job.conversation_total)} · 对话内消息 ${countText(job.messages_done)} 条 · 平台消息 ${job.platform_done || 0}/${countText(job.platform_total)}`; }
+    function durationText(job) {
+      if (!job.started_at) return '—';
+      const seconds = Math.max(0, Math.round((job.finished_at || Date.now()/1000) - job.started_at));
+      return seconds < 60 ? `${seconds} 秒` : `${Math.floor(seconds/60)} 分 ${seconds%60} 秒`;
+    }
+    function changed() { dirty = true; editVersion++; say('有未保存的更改；刷新状态不会覆盖输入。'); }
+    function jobButtons(job) {
+      return `<button class="small details" data-job="${escapeHtml(job.job_key)}">查看详情</button> ${['partial','failed','pending'].includes(job.status) ? `<button class="small retry" data-job="${escapeHtml(job.job_key)}">继续任务</button>` : ''}`;
+    }
+    function statusMarkup(item) {
+      return (item.target_umos || []).map(target => {
+        const job = jobFor(item, target);
+        if (!job) return `<div class="status-item"><code>${escapeHtml(target)}</code><p>尚未创建任务，保存后开始。</p></div>`;
+        return `<div class="status-item"><div class="status-top"><code>${escapeHtml(target)}</code><span class="status ${escapeHtml(job.status)}">${statusText(job.status)} · ${phaseText(job.phase)}</span></div>
+          <p class="hint">${progressText(job)} · 本次执行 ${durationText(job)} · 尝试 ${job.attempt_count || 0} 次</p>
+          ${job.error ? `<div class="error-detail">${escapeHtml(job.error)}</div>` : ''}<div class="actions">${jobButtons(job)}</div></div>`;
+      }).join('') || '<span class="hint">填写 B UMO 后保存，即可查看状态。</span>';
+    }
+    function renderStatuses() {
+      list.querySelectorAll('.mapping').forEach(card => {
+        const item = mappings[Number(card.dataset.index)];
+        card.querySelector('.statuses').innerHTML = statusMarkup(item);
+      });
+      const counts = [jobs.length, jobs.filter(j=>j.status==='complete').length, jobs.filter(j=>['pending','running'].includes(j.status)).length, jobs.filter(j=>['partial','failed'].includes(j.status)).length];
+      document.getElementById('summary').innerHTML = ['当前任务','已完成','排队 / 执行中','需要处理'].map((label,i)=>`<div class="metric"><b>${counts[i]}</b><span>${label}</span></div>`).join('');
+    }
+
+    function render() {
+      if (!mappings.length) { list.innerHTML = '<div class="empty">还没有映射。点击“添加映射”开始配置。</div>'; return; }
+      list.innerHTML = mappings.map((item, index) => {
+        const targets = Array.isArray(item.target_umos) ? item.target_umos.join('\n') : '';
+        return `<article class="mapping" data-index="${index}">
+          <div class="mapping-head"><span class="mapping-title">映射 ${index + 1}</span><div class="actions"><button class="recopy" type="button">重新复制一批</button><button class="danger remove" type="button">删除映射</button></div></div>
+          <div class="grid">
+            <div><label>A 来源 UMO</label><input class="source" value="${escapeHtml(item.source_umo)}" placeholder="aiocqhttp:GroupMessage:10001" /></div>
+            <div><label>复制范围</label><select class="scope"><option value="auto" ${item.scope==='auto'?'selected':''}>自动检测</option><option value="all" ${item.scope==='all'?'selected':''}>全部</option><option value="group" ${item.scope==='group'?'selected':''}>仅群聊</option><option value="private" ${item.scope==='private'?'selected':''}>仅私聊</option></select></div>
+            <div><label>Revision</label><input class="revision" type="number" min="1" step="1" value="${Number(item.revision) || 1}" /></div>
+          </div>
+          <div class="targets"><label>B 目标 UMO（每行一个）</label><textarea class="target" placeholder="telegram:FriendMessage:20002\nqq:FriendMessage:30003">${escapeHtml(targets)}</textarea><div class="hint">每个 B 都会生成自己的 conversation 副本，不能与其他映射重复。</div></div>
+          <div class="confirm-box" hidden><p>将为这条映射的全部 B 增加版本号、创建并切换到新副本。原有对话和旧副本都会保留。</p><div class="actions"><button class="confirm-recopy primary">确认重新复制</button><button class="cancel-recopy">取消</button></div></div>
+          <div class="statuses">${statusMarkup(item)}</div>
+        </article>`;
+      }).join('');
+      list.querySelectorAll('.mapping').forEach(card => {
+        const index = Number(card.dataset.index);
+        card.querySelector('.remove').onclick = () => { mappings.splice(index, 1); changed(); render(); };
+        card.querySelector('.source').oninput = event => { mappings[index].source_umo = event.target.value; changed(); };
+        card.querySelector('.scope').onchange = event => { mappings[index].scope = event.target.value; changed(); };
+        card.querySelector('.revision').oninput = event => { mappings[index].revision = Number(event.target.value); changed(); };
+        card.querySelector('.target').oninput = event => { mappings[index].target_umos = event.target.value.split(/\r?\n/).map(x => x.trim()).filter(Boolean); changed(); };
+        card.querySelector('.recopy').onclick = () => { if (dirty) { say('请先保存映射，再重新复制。', 'error'); return; } card.querySelector('.confirm-box').hidden = false; };
+        card.querySelector('.cancel-recopy').onclick = () => card.querySelector('.confirm-box').hidden = true;
+        card.querySelector('.confirm-recopy').onclick = () => recopy(index);
+      });
+    }
+
+    function armPolling() {
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+      const active = [...jobs, ...historyJobs].some(job => ['pending', 'running'].includes(job.status));
+      if (active) pollTimer = setTimeout(() => load(true), 2000);
+    }
+
+    async function load(silent = false, initial = false) {
+      if (loading) return;
+      loading = true;
+      if (!silent) say('正在读取配置…');
+      try {
+        const epoch = editVersion;
+        const [result, history] = await Promise.all([bridge.apiGet('settings'), bridge.apiPost('history', {page:historyPage})]);
+        if (initial && !dirty && epoch === editVersion) { mappings = result.mappings || []; render(); }
+        jobs = result.jobs || [];
+        historyJobs = history.jobs || [];
+        historyTotal = history.total || 0;
+        document.getElementById('version').textContent = `v${result.version || ''}`;
+        renderStatuses(); renderHistory();
+        if (!silent) say(dirty ? '状态已更新，未保存的输入已保留。' : '状态已更新', 'ok');
+      } catch (error) {
+        say(error.message || '读取失败', 'error');
+      } finally {
+        loading = false;
+        armPolling();
+      }
+    }
+
+    async function save() {
+      if (busy) return;
+      busy = true;
+      const epoch = editVersion;
+      const button = document.getElementById('save'); button.disabled = true; say('正在保存…');
+      try {
+        const result = await bridge.apiPost('settings/save', { mappings:JSON.parse(JSON.stringify(mappings)) });
+        if (epoch === editVersion) { mappings = result.mappings || mappings; dirty = false; render(); }
+        await load(true); say(`映射已保存，已排队 ${result.scheduled || 0} 个任务。${dirty ? '保存期间的新编辑尚未保存。' : '已完成的任务不会重复复制。'}`, 'ok');
+      }
+      catch (error) { say(error.message || '保存失败', 'error'); }
+      finally { button.disabled = false; busy = false; }
+    }
+
+    async function recopy(index) {
+      if (busy || dirty) { say('请先保存映射。', 'error'); return; }
+      busy = true;
+      const epoch = editVersion;
+      try {
+        const item = mappings[index];
+        const result = await bridge.apiPost('jobs/recopy', {source_umo:item.source_umo, revision:item.revision});
+        if (epoch === editVersion) { mappings = result.mappings; render(); }
+        else say('新批次已创建；请重新打开页面核对版本后再保存其他编辑。', 'error');
+        await load(true);
+        if (epoch === editVersion) say(`已创建版本 ${result.revision}，排队 ${result.scheduled} 个任务。`, 'ok');
+      } catch (error) { say(error.message || '重新复制失败', 'error'); }
+      finally { busy = false; }
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('history');
+      container.innerHTML = historyJobs.length ? `<table><thead><tr><th>来源 → 目标 / 批次</th><th>结果与进度</th><th>时间</th><th>操作</th></tr></thead><tbody>${historyJobs.map(job=>`<tr>
+        <td><code>${escapeHtml(job.source_umo)}</code><br>↓<br><code>${escapeHtml(job.target_umo)}</code><br><span class="hint">版本 ${job.revision} · ${escapeHtml(job.scope)}</span></td>
+        <td><span class="status ${escapeHtml(job.status)}">${statusText(job.status)}</span><div class="hint">${progressText(job)}</div>${job.error ? `<div class="error-detail">${escapeHtml(job.error)}</div>` : ''}</td>
+        <td>创建 ${timeText(job.created_at)}<br>完成 ${timeText(job.completed_at)}<br><span class="hint">最近执行 ${durationText(job)}</span></td>
+        <td><button class="small details" data-job="${escapeHtml(job.job_key)}">查看详情</button>${job.can_retry ? `<button class="small retry" data-job="${escapeHtml(job.job_key)}">继续任务</button>` : ''}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">暂无复制记录，保存映射后会在这里显示。</div>';
+      document.getElementById('history-page').textContent = `第 ${historyPage} / ${Math.max(1,Math.ceil(historyTotal/20))} 页 · 共 ${historyTotal} 条`;
+      document.getElementById('history-prev').disabled = historyPage <= 1;
+      document.getElementById('history-next').disabled = historyPage * 20 >= historyTotal;
+    }
+
+    async function retry(jobKey) {
+      if (busy) return;
+      busy = true;
+      try { const result = await bridge.apiPost('jobs/retry', {job_key:jobKey}); await load(true); say(result.scheduled ? '已排队，继续完成剩余步骤。' : '任务已完成或正在执行，无需重复提交。', 'ok'); }
+      catch (error) { say(error.message || '重试失败', 'error'); }
+      finally { busy = false; }
+    }
+
+    async function showDetail(jobKey, page=1) {
+      const panel = document.getElementById('detail');
+      const epoch = ++detailVersion;
+      selectedJob = jobKey;
+      panel.hidden = false; panel.textContent = '正在读取任务详情…';
+      try {
+        const result = await bridge.apiPost('history/detail', {job_key:jobKey, page});
+        if (epoch !== detailVersion) return;
+        const job = result.job;
+        panel.innerHTML = `<div class="status-top"><h2>任务详情 · 版本 ${job.revision}</h2><div class="actions"><button id="detail-refresh">刷新详情</button><button id="detail-close">关闭</button></div></div>
+          <p><code>${escapeHtml(job.source_umo)}</code> → <code>${escapeHtml(job.target_umo)}</code></p>
+          <p>${statusText(job.status)} · ${phaseText(job.phase)} · ${progressText(job)}</p>
+          ${job.error ? `<div class="error-detail">${escapeHtml(job.error)}</div>` : ''}
+          <h3>已创建的独立对话</h3><p class="hint">预览读取 B 目前的内容，包括 B 后续的聊天；它不是复制时的静态备份。媒体显示占位文本。</p>
+          <div class="table-wrap"><table><thead><tr><th>标题 / 消息数</th><th>来源 ID → 副本 ID</th><th>状态</th></tr></thead><tbody>${result.conversations.map(conv=>`<tr><td>${escapeHtml(conv.title || '无标题')}<br><span class="hint">复制时 ${countText(conv.message_count)} 条消息</span></td><td><code>${escapeHtml(conv.source_cid)}</code><br>↓<br><code>${escapeHtml(conv.target_cid)}</code></td><td>${conv.status === 'complete' ? `<button class="preview small" data-source="${escapeHtml(conv.source_cid)}">查看对话</button>` : '等待写入历史'}</td></tr>`).join('')}</tbody></table></div>
+          <div class="pager"><button id="detail-prev" ${page<=1?'disabled':''}>上一页</button><span>对话第 ${page} 页</span><button id="detail-next" ${page*50>=job.allocated_conversations?'disabled':''}>下一页</button></div>
+          <div id="preview-panel"></div><h3>最近 50 条执行记录</h3><ol class="events">${result.events.map(event=>`<li>${timeText(event.created_at)} · ${statusText(event.status)} · ${phaseText(event.phase)}${event.message ? `<div class="error-detail">${escapeHtml(event.message)}</div>` : ''}</li>`).join('') || '<li>此记录来自旧版，升级前的阶段记录不可用。</li>'}</ol>`;
+        panel.querySelector('#detail-close').onclick = () => { panel.hidden = true; selectedJob = null; detailVersion++; previewVersion++; };
+        panel.querySelector('#detail-refresh').onclick = () => showDetail(jobKey, page);
+        panel.querySelector('#detail-prev').onclick = () => showDetail(jobKey, page-1);
+        panel.querySelector('#detail-next').onclick = () => showDetail(jobKey, page+1);
+        panel.querySelectorAll('.preview').forEach(button => button.onclick = () => showPreview(jobKey, button.dataset.source));
+        panel.scrollIntoView({behavior:'smooth',block:'start'});
+      } catch (error) { if (epoch === detailVersion) panel.textContent = error.message || '读取详情失败'; }
+    }
+
+    async function showPreview(jobKey, sourceCid, page=1) {
+      const panel = document.getElementById('preview-panel');
+      const epoch = ++previewVersion;
+      panel.textContent = '正在读取对话历史…';
+      try {
+        const result = await bridge.apiPost('history/preview', {job_key:jobKey, source_cid:sourceCid, page});
+        if (epoch !== previewVersion || selectedJob !== jobKey) return;
+        panel.innerHTML = `<h3>${escapeHtml(result.title || '对话历史')} · 共 ${result.total} 条</h3>${result.messages.map(message=>`<article class="chat-message"><b>${message.index}. ${escapeHtml(message.role)}</b><pre>${escapeHtml(message.text)}</pre>${message.truncated?'<span class="hint">本条预览已截断，完整内容仍保存在 AstrBot。</span>':''}</article>`).join('') || '<p>该对话目前没有消息。</p>'}<div class="pager"><button id="preview-prev" ${page<=1?'disabled':''}>上一页</button><span>第 ${page} 页 · 每页 20 条</span><button id="preview-next" ${page*20>=result.total?'disabled':''}>下一页</button></div>`;
+        panel.querySelector('#preview-prev').onclick = () => showPreview(jobKey, sourceCid, page-1);
+        panel.querySelector('#preview-next').onclick = () => showPreview(jobKey, sourceCid, page+1);
+      } catch (error) { if (epoch === previewVersion) panel.textContent = error.message || '读取预览失败'; }
+    }
+
+    document.addEventListener('click', event => {
+      const button = event.target.closest('button[data-job]');
+      if (!button) return;
+      if (button.classList.contains('retry')) retry(button.dataset.job);
+      else if (button.classList.contains('details')) showDetail(button.dataset.job);
+    });
+    document.getElementById('add').onclick = () => { mappings.push({source_umo:'', target_umos:[], scope:'auto', revision:1}); changed(); render(); };
+    document.getElementById('refresh').onclick = () => load(false);
+    document.getElementById('history-prev').onclick = () => { if (!loading) { historyPage--; load(true); } };
+    document.getElementById('history-next').onclick = () => { if (!loading) { historyPage++; load(true); } };
+    document.getElementById('save').onclick = save;
+    await bridge.ready();
+    await load(false, true);
+  </script>
+</body>
+</html>

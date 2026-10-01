@@ -1,0 +1,10 @@
+name: astrbot_plugin_cross_platform_share
+display_name: Astrbot对话数据跨平台共享
+short_desc: 按完整 UMO 将 A 的对话独立复制给一个或多个 B
+description: |
+  通过后台配置完整 UMO 映射，保存后立即复制 A 的全部对话和平台消息历史。
+  每个 B 使用独立 conversation_id，复制后与 A 完全分离。
+version: 2.3.0
+author: AstrBot plugin community
+repo: "https://github.com/l52312516-cell/astrbot_plugin_cross_platform_share"
+astrbot_version: ">=4.16,<5"

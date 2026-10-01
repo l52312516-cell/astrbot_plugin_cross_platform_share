@@ -1,0 +1,14 @@
+{
+  "clone_mappings_json": {
+    "description": "A UMO 到一个或多个 B UMO 的单向对话复制映射（管理页会自动维护此项）",
+    "type": "string",
+    "default": "[]",
+    "hint": "JSON 数组：[{\"source_umo\":\"平台:GroupMessage:会话ID\",\"target_umos\":[\"平台:FriendMessage:会话ID\"],\"scope\":\"auto\",\"revision\":1}]。"
+  },
+  "storage_dir": {
+    "description": "克隆任务元数据目录",
+    "type": "string",
+    "default": "",
+    "hint": "留空时使用插件目录下的 data；这里只保存状态和映射，不保存对话正文。"
+  }
+}
