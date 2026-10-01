@@ -31,7 +31,7 @@ except ImportError:  # AstrBot versions that load main.py as a standalone module
 
 
 PLUGIN_ID = "astrbot_plugin_cross_platform_share"
-PLUGIN_VERSION = "v2.4.0"
+PLUGIN_VERSION = "v2.5.0"
 DEFAULT_STORAGE_DIR = os.path.join("data", "plugin_data", PLUGIN_ID)
 
 
