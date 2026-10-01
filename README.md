@@ -133,13 +133,3 @@ telegram:FriendMessage:20002
 **B 原有对话会丢失吗？** 不会。插件创建新 conversation 并切换当前选中项，不删除 B 原有对话。
 
 **提示 ConversationManager 或 PlatformMessageHistory API 不可用？** 当前 AstrBot 环境没有提供所需接口。请确认 AstrBot 版本和插件日志；插件不会用 SQLite 生成看似成功但 AstrBot 无法使用的假对话。
-
-## 开发与测试
-
-仓库包含不依赖真实 AstrBot 数据库的 Python 单元测试。安装运行依赖和 `pytest`、`pytest-asyncio` 后，在仓库根目录执行：
-
-```text
-python -m pytest tests -q
-```
-
-`tests/test_page.cjs` 是管理页的浏览器交互测试，需要 Node.js、Playwright 和可用的 Chromium 或 Edge。测试缓存、临时依赖、运行数据目录与数据库文件已由 `.gitignore` 排除。
