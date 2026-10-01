@@ -1,0 +1,2 @@
+# astrbot_plugin_cross_platform_share
+为Astrbot对话数据进行多平台多用户的数据迁移
